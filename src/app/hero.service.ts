@@ -26,14 +26,7 @@ export class HeroService {
       );
   }
 
-  getHero(id: number): Observable<Hero> {
-    // For now, assume that a hero with the specified `id` always exists.
-    // Error handling will be added in the next step of the tutorial.
-    const hero = HEROES.find(h => h.id === id)!;
-    this.messageService.add(`HeroService: fetched hero id=${id}`);
-    return of(hero);
-  }
-  private log(message: string) {
+    private log(message: string) {
     this.messageService.add(`HeroService: ${message}`);
   }
 
@@ -61,6 +54,14 @@ private handleError<T>(operation = 'operation', result?: T) {
   };
 }
 
+getHero(id: number): Observable<Hero> {
+  // For now, assume that a hero with the specified `id` always exists.
+  // Error handling will be added in the next step of the tutorial.
+  const hero = HEROES.find(h => h.id === id)!;
+  this.messageService.add(`HeroService: fetched hero id=${id}`);
+  return of(hero);
+}
+
 /** PUT: update the hero on the server */
 updateHero(hero: Hero): Observable<any> {
   return this.http.put(this.heroesUrl, hero, this.httpOptions).pipe(
@@ -84,6 +85,19 @@ deleteHero(id: number): Observable<Hero> {
   return this.http.delete<Hero>(url, this.httpOptions).pipe(
     tap(_ => this.log(`deleted hero id=${id}`)),
     catchError(this.handleError<Hero>('deleteHero'))
+  );
+}
+/* GET heroes whose name contains search term */
+searchHeroes(term: string): Observable<Hero[]> {
+  if (!term.trim()) {
+    // if not search term, return empty hero array.
+    return of([]);
+  }
+  return this.http.get<Hero[]>(`${this.heroesUrl}/?name=${term}`).pipe(
+    tap(x => x.length ?
+       this.log(`found heroes matching "${term}"`) :
+       this.log(`no heroes matching "${term}"`)),
+    catchError(this.handleError<Hero[]>('searchHeroes', []))
   );
 }
 }
